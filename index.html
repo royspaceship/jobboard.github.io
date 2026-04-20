@@ -260,16 +260,59 @@ const LOGO_COLORS = [
 
 let savedJobs = new Set();
 
-let jobs = [
-  {id:1,title:'Senior Frontend Engineer',company:'Stripe',location:'Remote',type:'Full-time',exp:'Senior',salary:'$150,000',salaryNum:150000,desc:'Join Stripe\'s frontend platform team to build the tools and infrastructure that power payments for millions of businesses worldwide. You\'ll work on React-based UIs at scale, collaborating with world-class engineers.',tags:['React','TypeScript','GraphQL'],date:'2 days ago',daysAgo:2,featured:true,applyUrl:'https://stripe.com/jobs'},
-  {id:2,title:'Product Designer',company:'Notion',location:'San Francisco',type:'Full-time',exp:'Mid',salary:'$120,000',salaryNum:120000,desc:'Help shape the future of how people think and work. You\'ll design core product features used by millions of people, collaborating closely with engineers and PMs to ship beautiful, functional interfaces.',tags:['Figma','UX Research','Design Systems'],date:'3 days ago',daysAgo:3,featured:true,applyUrl:'https://notion.so/careers'},
-  {id:3,title:'Backend Engineer',company:'Vercel',location:'Remote',type:'Full-time',exp:'Senior',salary:'$160,000',salaryNum:160000,desc:'Build the infrastructure that powers the modern web. You\'ll work on deployment pipelines, edge networking, and developer tooling used by millions of developers worldwide.',tags:['Node.js','Go','Kubernetes'],date:'5 days ago',daysAgo:5,featured:false,applyUrl:''},
-  {id:4,title:'Data Analyst',company:'Airbnb',location:'New York',type:'Full-time',exp:'Mid',salary:'$105,000',salaryNum:105000,desc:'Turn complex data into actionable insights that drive product decisions. You\'ll work with large datasets to uncover growth opportunities and present findings to leadership.',tags:['SQL','Python','Tableau'],date:'1 week ago',daysAgo:7,featured:false,applyUrl:''},
-  {id:5,title:'Marketing Intern',company:'Linear',location:'Remote',type:'Internship',exp:'Entry',salary:'$25/hr',salaryNum:25,desc:'Support the marketing team with content creation, campaign analysis, and community engagement. A great opportunity to learn fast in a high-growth startup environment.',tags:['Content','Social Media','Analytics'],date:'1 week ago',daysAgo:7,featured:false,applyUrl:''},
-  {id:6,title:'iOS Engineer',company:'Figma',location:'San Francisco',type:'Full-time',exp:'Mid',salary:'$140,000',salaryNum:140000,desc:'Build Figma\'s iOS app used by millions of designers globally. You\'ll work closely with the design team to push the boundaries of what\'s possible on mobile.',tags:['Swift','SwiftUI','UIKit'],date:'2 weeks ago',daysAgo:14,featured:false,applyUrl:''},
-  {id:7,title:'DevOps Engineer',company:'Cloudflare',location:'London',type:'Full-time',exp:'Senior',salary:'£100,000',salaryNum:100000,desc:'Manage and scale infrastructure that serves traffic for a significant portion of the internet. You\'ll focus on automation, monitoring, incident response, and reliability engineering.',tags:['Terraform','AWS','Docker'],date:'2 weeks ago',daysAgo:14,featured:false,applyUrl:''},
-  {id:8,title:'UX Researcher',company:'Atlassian',location:'Remote',type:'Contract',exp:'Mid',salary:'$80/hr',salaryNum:80,desc:'Conduct user research to inform product decisions across Atlassian\'s suite of tools. You\'ll run interviews, surveys, and usability studies to champion the user\'s perspective.',tags:['Research','Usability Testing','Surveys'],date:'3 weeks ago',daysAgo:21,featured:false,applyUrl:''},
-];
+const SUPABASE_URL = https://ivtgtvhzzsqeyxoexrfu.supabase.co;
+const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2dGd0dmh6enNxZXl4b2V4cmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NzE0NTEsImV4cCI6MjA5MjI0NzQ1MX0.56QTGqj-;
+
+let jobs = [];
+
+async function loadJobs() {
+  document.getElementById('job-count').textContent = 'Loading jobs...';
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/jobs?select=*&order=posted_at.desc&limit=50`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
+
+  const data = await response.json();
+
+  jobs = data.map((j, i) => ({
+    id: j.id,
+    title: j.title,
+    company: j.company,
+    location: j.location,
+    type: j.type || 'Full-time',
+    exp: 'Mid',
+    salary: j.salary || 'Competitive',
+    salaryNum: 0,
+    desc: j.description,
+    tags: j.tags || [],
+    date: timeAgo(j.posted_at),
+    daysAgo: daysSince(j.posted_at),
+    featured: i < 3,
+    applyUrl: j.apply_url
+  }));
+
+  filterJobs();
+}
+
+function timeAgo(dateStr) {
+  const days = daysSince(dateStr);
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+  return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`;
+}
+
+function daysSince(dateStr) {
+  return Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+}
+
+loadJobs();
 let nextId = 9;
 
 function getColor(name){return LOGO_COLORS[name.charCodeAt(0)%LOGO_COLORS.length]}
@@ -415,7 +458,6 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-filterJobs();
 </script>
 </body>
 </html>
