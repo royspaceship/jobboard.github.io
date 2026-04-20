@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobBoard — Find Your Next Opportunity</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:#1a1a1a;background:#f5f5f3;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  input,select,textarea,button{font-family:inherit;font-size:14px;outline:none}
+  input,select,textarea{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:8px 12px;color:#1a1a1a;transition:border-color 0.15s}
+  input:focus,select:focus,textarea:focus{border-color:#378ADD}
+  button{cursor:pointer;border-radius:8px;font-size:13px;transition:all 0.15s}
+
+  /* Nav */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:#fff;border-bottom:1px solid #e8e8e8;position:sticky;top:0;z-index:50}
+  .nav-logo{font-size:18px;font-weight:700;letter-spacing:-0.5px}.nav-logo span{color:#378ADD}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .nav-link{font-size:13px;color:#666;padding:6px 10px;border-radius:6px}
+  .nav-link:hover{background:#f0f0f0;color:#1a1a1a}
+  .nav-btn{background:#378ADD;color:#fff;border:none;padding:7px 16px;font-weight:500}
+  .nav-btn:hover{background:#185FA5}
+
+  /* Hero */
+  .hero{background:#fff;border-bottom:1px solid #e8e8e8;padding:2.5rem 1.5rem 2rem}
+  .hero-inner{max-width:860px;margin:0 auto}
+  .hero h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
+  .hero p{font-size:15px;color:#666;margin-bottom:1.25rem}
+  .search-row{display:flex;gap:8px;flex-wrap:wrap}
+  .search-row input{flex:1;min-width:200px;height:40px}
+  .search-row select{width:160px;height:40px}
+  .search-btn{background:#378ADD;color:#fff;border:none;height:40px;padding:0 20px;font-weight:500}
+  .search-btn:hover{background:#185FA5}
+  .hero-stats{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap}
+  .stat{font-size:13px;color:#888}.stat strong{color:#1a1a1a;font-weight:600}
+
+  /* Layout */
+  .layout{display:flex;gap:1.25rem;padding:1.5rem;max-width:860px;margin:0 auto}
+  .sidebar{width:210px;flex-shrink:0}
+  .sidebar-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem;margin-bottom:0.75rem}
+  .sidebar-card h3{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem}
+  .filter-label{display:flex;align-items:center;gap:8px;font-size:13px;color:#333;margin-bottom:7px;cursor:pointer;user-select:none}
+  .filter-label input{accent-color:#378ADD;width:14px;height:14px;flex-shrink:0}
+  .clear-btn{font-size:12px;color:#378ADD;background:none;border:none;padding:0;display:block;margin-top:8px}
+  .clear-btn:hover{text-decoration:underline}
+
+  /* Job list */
+  .job-list{flex:1;min-width:0}
+  .list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+  .job-count{font-size:13px;color:#888}
+  .sort-select{font-size:13px;border:1px solid #e0e0e0;border-radius:6px;padding:4px 8px;background:#fff;height:30px}
+
+  /* Job card */
+  .job-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:0.75rem;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s}
+  .job-card:hover{border-color:#bbb;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+  .job-card.featured{border-left:3px solid #378ADD}
+  .job-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:0.6rem}
+  .company-logo{width:42px;height:42px;border-radius:10px;border:1px solid #eee;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+  .job-header{flex:1;min-width:0}
+  .job-title{font-size:15px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .job-company{font-size:13px;color:#666}
+  .job-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem}
+  .badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 8px;border-radius:6px;border:1px solid #e8e8e8;color:#666;background:#fafafa}
+  .badge.type{background:#EBF4FF;color:#185FA5;border-color:#c5dff7}
+  .badge.remote{background:#EAFAF1;color:#1a7a4a;border-color:#b7e8cf}
+  .badge.new{background:#FFF8E7;color:#b45309;border-color:#fde68a}
+  .badge.featured{background:#EBF4FF;color:#185FA5;border-color:#c5dff7}
+  .badge.urgent{background:#FEF2F2;color:#b91c1c;border-color:#fecaca}
+  .job-desc{font-size:13px;color:#555;line-height:1.55;margin-bottom:0.7rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .job-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.7rem}
+  .tag{font-size:11px;color:#555;background:#f0f0f0;border-radius:4px;padding:2px 7px}
+  .job-footer{display:flex;align-items:center;justify-content:space-between}
+  .job-salary{font-size:13px;font-weight:600;color:#1a1a1a}
+  .job-right{display:flex;align-items:center;gap:10px}
+  .job-date{font-size:12px;color:#aaa}
+  .save-btn{background:none;border:1px solid #e0e0e0;color:#888;padding:5px 10px;border-radius:6px;font-size:12px}
+  .save-btn:hover{border-color:#378ADD;color:#378ADD}
+  .save-btn.saved{background:#EBF4FF;border-color:#c5dff7;color:#185FA5}
+  .apply-btn{background:#378ADD;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500}
+  .apply-btn:hover{background:#185FA5}
+
+  /* Empty */
+  .empty{text-align:center;padding:3rem 1rem;color:#999;font-size:14px}
+  .empty-icon{font-size:36px;margin-bottom:0.75rem}
+
+  /* Modals */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;padding:1rem}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:1.75rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+  .modal h2{font-size:20px;font-weight:700;margin-bottom:1.25rem;letter-spacing:-0.3px}
+  .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:20px;color:#999;line-height:1}
+  .modal-close:hover{color:#333}
+  .form-group{margin-bottom:1rem}
+  .form-group label{display:block;font-size:13px;font-weight:500;color:#555;margin-bottom:5px}
+  .form-group input,.form-group select,.form-group textarea{width:100%}
+  .form-group textarea{height:100px;resize:vertical;line-height:1.5}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #f0f0f0}
+  .cancel-btn{background:#fff;border:1px solid #e0e0e0;color:#555;padding:8px 18px}
+  .cancel-btn:hover{background:#f5f5f5}
+  .submit-btn{background:#378ADD;color:#fff;border:none;padding:8px 20px;font-weight:500}
+  .submit-btn:hover{background:#185FA5}
+  .required{color:#e24b4a}
+
+  /* Detail modal */
+  .detail-modal .dm-header{display:flex;gap:14px;align-items:flex-start;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #f0f0f0}
+  .detail-modal .dm-logo{width:56px;height:56px;border-radius:12px;border:1px solid #eee;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+  .detail-modal h2{font-size:20px;font-weight:700;margin-bottom:3px;letter-spacing:-0.3px}
+  .detail-modal .dm-company{font-size:14px;color:#666}
+  .dm-section{margin-bottom:1.1rem}
+  .dm-section h3{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px}
+  .dm-section p{font-size:14px;color:#333;line-height:1.6}
+  .dm-section ul{padding-left:1.2rem}
+  .dm-section li{font-size:14px;color:#333;line-height:1.6;margin-bottom:3px}
+  .dm-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem}
+
+  /* Toast */
+  .toast{display:none;position:fixed;bottom:24px;right:24px;background:#1a7a4a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+  .toast.show{display:block;animation:slideup 0.25s ease}
+  @keyframes slideup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Footer */
+  footer{text-align:center;padding:2rem;font-size:13px;color:#aaa;border-top:1px solid #e8e8e8;margin-top:1rem;background:#fff}
+
+  @media(max-width:600px){
+    .layout{flex-direction:column;padding:1rem}
+    .sidebar{width:100%}
+    .form-row{grid-template-columns:1fr}
+    .hero{padding:1.5rem 1rem 1.25rem}
+    .hero h1{font-size:22px}
+    .nav{padding:0 1rem}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo"><span>Job</span>Board</div>
+  <div class="nav-right">
+    <a href="#" class="nav-link">Browse jobs</a>
+    <a href="#" class="nav-link">Companies</a>
+    <button class="nav-btn" onclick="openPostModal()">+ Post a job</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Find your next opportunity</h1>
+    <p>Browse thousands of jobs from top companies worldwide</p>
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Job title, keyword, or company..." oninput="filterJobs()">
+      <select id="location-filter" onchange="filterJobs()">
+        <option value="">All locations</option>
+        <option>Remote</option>
+        <option>New York</option>
+        <option>San Francisco</option>
+        <option>London</option>
+        <option>Bangalore</option>
+      </select>
+      <button class="search-btn" onclick="filterJobs()">Search</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><strong id="total-jobs">8</strong> open positions</div>
+      <div class="stat"><strong>120+</strong> companies hiring</div>
+      <div class="stat"><strong>Free</strong> to apply</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <h3>Job type</h3>
+      <label class="filter-label"><input type="checkbox" value="Full-time" onchange="filterJobs()" checked> Full-time</label>
+      <label class="filter-label"><input type="checkbox" value="Part-time" onchange="filterJobs()" checked> Part-time</label>
+      <label class="filter-label"><input type="checkbox" value="Contract" onchange="filterJobs()" checked> Contract</label>
+      <label class="filter-label"><input type="checkbox" value="Internship" onchange="filterJobs()" checked> Internship</label>
+    </div>
+    <div class="sidebar-card">
+      <h3>Experience level</h3>
+      <label class="filter-label"><input type="checkbox" value="Entry" onchange="filterJobs()" checked> Entry level</label>
+      <label class="filter-label"><input type="checkbox" value="Mid" onchange="filterJobs()" checked> Mid level</label>
+      <label class="filter-label"><input type="checkbox" value="Senior" onchange="filterJobs()" checked> Senior</label>
+    </div>
+    <div class="sidebar-card">
+      <h3>Work mode</h3>
+      <label class="filter-label"><input type="checkbox" value="remote-only" id="remote-check" onchange="filterJobs()"> Remote only</label>
+    </div>
+  </div>
+
+  <div class="job-list">
+    <div class="list-header">
+      <div class="job-count" id="job-count">Loading...</div>
+      <select class="sort-select" id="sort-select" onchange="filterJobs()">
+        <option value="date">Most recent</option>
+        <option value="salary">Highest salary</option>
+        <option value="featured">Featured first</option>
+      </select>
+    </div>
+    <div id="job-container"></div>
+  </div>
+</div>
+
+<!-- Post Job Modal -->
+<div class="modal-overlay" id="post-modal" onclick="if(event.target===this)closePostModal()">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closePostModal()">&#x2715;</button>
+    <h2>Post a job</h2>
+    <div class="form-row">
+      <div class="form-group"><label>Job title <span class="required">*</span></label><input type="text" id="pf-title" placeholder="e.g. Senior Designer"></div>
+      <div class="form-group"><label>Company name <span class="required">*</span></label><input type="text" id="pf-company" placeholder="e.g. Acme Corp"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Location <span class="required">*</span></label><input type="text" id="pf-location" placeholder="e.g. Remote, New York"></div>
+      <div class="form-group"><label>Job type</label>
+        <select id="pf-type"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Salary range</label><input type="text" id="pf-salary" placeholder="e.g. $80k – $120k"></div>
+      <div class="form-group"><label>Experience level</label>
+        <select id="pf-exp"><option value="Entry">Entry level</option><option value="Mid" selected>Mid level</option><option value="Senior">Senior</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Job description <span class="required">*</span></label><textarea id="pf-desc" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea></div>
+    <div class="form-group"><label>Skills / technologies</label><input type="text" id="pf-tags" placeholder="e.g. React, Python, Figma (comma-separated)"></div>
+    <div class="form-group"><label>Apply link or email</label><input type="text" id="pf-apply" placeholder="https://... or jobs@company.com"></div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closePostModal()">Cancel</button>
+      <button class="submit-btn" onclick="submitJob()">Post job</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal detail-modal" style="position:relative">
+    <button class="modal-close" onclick="closeDetailModal()">&#x2715;</button>
+    <div id="detail-content"></div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeDetailModal()">Close</button>
+      <button class="submit-btn" id="detail-apply-btn">Apply now</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  &copy; 2026 JobBoard &mdash; Built with &#9825; &mdash; Free to use and modify
+</footer>
+
+<script>
+const LOGO_COLORS = [
+  {bg:'#DBEAFE',text:'#1e40af'},{bg:'#D1FAE5',text:'#065f46'},{bg:'#FCE7F3',text:'#9d174d'},
+  {bg:'#FEF3C7',text:'#92400e'},{bg:'#EDE9FE',text:'#5b21b6'},{bg:'#FFE4E6',text:'#9f1239'},
+  {bg:'#E0F2FE',text:'#075985'},{bg:'#DCFCE7',text:'#166534'}
+];
+
+let savedJobs = new Set();
+
+let jobs = [
+  {id:1,title:'Senior Frontend Engineer',company:'Stripe',location:'Remote',type:'Full-time',exp:'Senior',salary:'$150,000',salaryNum:150000,desc:'Join Stripe\'s frontend platform team to build the tools and infrastructure that power payments for millions of businesses worldwide. You\'ll work on React-based UIs at scale, collaborating with world-class engineers.',tags:['React','TypeScript','GraphQL'],date:'2 days ago',daysAgo:2,featured:true,applyUrl:'https://stripe.com/jobs'},
+  {id:2,title:'Product Designer',company:'Notion',location:'San Francisco',type:'Full-time',exp:'Mid',salary:'$120,000',salaryNum:120000,desc:'Help shape the future of how people think and work. You\'ll design core product features used by millions of people, collaborating closely with engineers and PMs to ship beautiful, functional interfaces.',tags:['Figma','UX Research','Design Systems'],date:'3 days ago',daysAgo:3,featured:true,applyUrl:'https://notion.so/careers'},
+  {id:3,title:'Backend Engineer',company:'Vercel',location:'Remote',type:'Full-time',exp:'Senior',salary:'$160,000',salaryNum:160000,desc:'Build the infrastructure that powers the modern web. You\'ll work on deployment pipelines, edge networking, and developer tooling used by millions of developers worldwide.',tags:['Node.js','Go','Kubernetes'],date:'5 days ago',daysAgo:5,featured:false,applyUrl:''},
+  {id:4,title:'Data Analyst',company:'Airbnb',location:'New York',type:'Full-time',exp:'Mid',salary:'$105,000',salaryNum:105000,desc:'Turn complex data into actionable insights that drive product decisions. You\'ll work with large datasets to uncover growth opportunities and present findings to leadership.',tags:['SQL','Python','Tableau'],date:'1 week ago',daysAgo:7,featured:false,applyUrl:''},
+  {id:5,title:'Marketing Intern',company:'Linear',location:'Remote',type:'Internship',exp:'Entry',salary:'$25/hr',salaryNum:25,desc:'Support the marketing team with content creation, campaign analysis, and community engagement. A great opportunity to learn fast in a high-growth startup environment.',tags:['Content','Social Media','Analytics'],date:'1 week ago',daysAgo:7,featured:false,applyUrl:''},
+  {id:6,title:'iOS Engineer',company:'Figma',location:'San Francisco',type:'Full-time',exp:'Mid',salary:'$140,000',salaryNum:140000,desc:'Build Figma\'s iOS app used by millions of designers globally. You\'ll work closely with the design team to push the boundaries of what\'s possible on mobile.',tags:['Swift','SwiftUI','UIKit'],date:'2 weeks ago',daysAgo:14,featured:false,applyUrl:''},
+  {id:7,title:'DevOps Engineer',company:'Cloudflare',location:'London',type:'Full-time',exp:'Senior',salary:'£100,000',salaryNum:100000,desc:'Manage and scale infrastructure that serves traffic for a significant portion of the internet. You\'ll focus on automation, monitoring, incident response, and reliability engineering.',tags:['Terraform','AWS','Docker'],date:'2 weeks ago',daysAgo:14,featured:false,applyUrl:''},
+  {id:8,title:'UX Researcher',company:'Atlassian',location:'Remote',type:'Contract',exp:'Mid',salary:'$80/hr',salaryNum:80,desc:'Conduct user research to inform product decisions across Atlassian\'s suite of tools. You\'ll run interviews, surveys, and usability studies to champion the user\'s perspective.',tags:['Research','Usability Testing','Surveys'],date:'3 weeks ago',daysAgo:21,featured:false,applyUrl:''},
+];
+let nextId = 9;
+
+function getColor(name){return LOGO_COLORS[name.charCodeAt(0)%LOGO_COLORS.length]}
+function getInitials(name){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+
+function renderJobs(list){
+  const container=document.getElementById('job-container');
+  const countEl=document.getElementById('job-count');
+  countEl.textContent=list.length+' job'+(list.length!==1?'s':'')+' found';
+  if(!list.length){
+    container.innerHTML='<div class="empty"><div class="empty-icon">&#128269;</div>No jobs match your search.<br>Try adjusting your filters or search terms.</div>';
+    return;
+  }
+  container.innerHTML=list.map(j=>{
+    const c=getColor(j.company);
+    const isSaved=savedJobs.has(j.id);
+    return`<div class="job-card${j.featured?' featured':''}" onclick="openDetail(${j.id})">
+      <div class="job-top">
+        <div class="company-logo" style="background:${c.bg};color:${c.text}">${getInitials(j.company)}</div>
+        <div class="job-header">
+          <div class="job-title">${j.title}</div>
+          <div class="job-company">${j.company}</div>
+        </div>
+      </div>
+      <div class="job-meta">
+        <span class="badge type">${j.type}</span>
+        ${j.location.toLowerCase()==='remote'?'<span class="badge remote">Remote</span>':'<span class="badge">&#128205; '+j.location+'</span>'}
+        <span class="badge">${j.exp} level</span>
+        ${j.featured?'<span class="badge featured">&#11088; Featured</span>':''}
+        ${j.daysAgo<=3?'<span class="badge new">New</span>':''}
+      </div>
+      <div class="job-desc">${j.desc}</div>
+      ${j.tags.length?'<div class="job-tags">'+j.tags.map(t=>'<span class="tag">'+t+'</span>').join('')+'</div>':''}
+      <div class="job-footer">
+        <div class="job-salary">${j.salary}</div>
+        <div class="job-right">
+          <span class="job-date">${j.date}</span>
+          <button class="save-btn${isSaved?' saved':''}" onclick="event.stopPropagation();toggleSave(${j.id},this)">${isSaved?'&#9829; Saved':'&#9825; Save'}</button>
+          <button class="apply-btn" onclick="event.stopPropagation();applyJob(${j.id})">Apply</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterJobs(){
+  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  const loc=document.getElementById('location-filter').value.toLowerCase();
+  const remoteOnly=document.getElementById('remote-check').checked;
+  const types=[...document.querySelectorAll('input[type=checkbox]')].filter(c=>['Full-time','Part-time','Contract','Internship'].includes(c.value)&&c.checked).map(c=>c.value);
+  const exps=[...document.querySelectorAll('input[type=checkbox]')].filter(c=>['Entry','Mid','Senior'].includes(c.value)&&c.checked).map(c=>c.value);
+  const sort=document.getElementById('sort-select').value;
+
+  let filtered=jobs.filter(j=>{
+    if(q&&!j.title.toLowerCase().includes(q)&&!j.company.toLowerCase().includes(q)&&!j.tags.some(t=>t.toLowerCase().includes(q)))return false;
+    if(loc&&!j.location.toLowerCase().includes(loc))return false;
+    if(remoteOnly&&j.location.toLowerCase()!=='remote')return false;
+    if(!types.includes(j.type))return false;
+    if(!exps.includes(j.exp))return false;
+    return true;
+  });
+
+  if(sort==='salary')filtered.sort((a,b)=>b.salaryNum-a.salaryNum);
+  else if(sort==='featured')filtered.sort((a,b)=>b.featured-a.featured);
+  else filtered.sort((a,b)=>a.daysAgo-b.daysAgo);
+
+  renderJobs(filtered);
+}
+
+function toggleSave(id,btn){
+  if(savedJobs.has(id)){savedJobs.delete(id);btn.classList.remove('saved');btn.innerHTML='&#9825; Save'}
+  else{savedJobs.add(id);btn.classList.add('saved');btn.innerHTML='&#9829; Saved';showToast('Job saved!')}
+}
+
+function openDetail(id){
+  const j=jobs.find(x=>x.id===id);if(!j)return;
+  const c=getColor(j.company);
+  document.getElementById('detail-content').innerHTML=`
+    <div class="dm-header">
+      <div class="dm-logo" style="background:${c.bg};color:${c.text}">${getInitials(j.company)}</div>
+      <div>
+        <h2>${j.title}</h2>
+        <div class="dm-company">${j.company} &middot; ${j.location}</div>
+      </div>
+    </div>
+    <div class="dm-meta">
+      <span class="badge type">${j.type}</span>
+      ${j.location.toLowerCase()==='remote'?'<span class="badge remote">Remote</span>':'<span class="badge">'+j.location+'</span>'}
+      <span class="badge">${j.exp} level</span>
+      ${j.featured?'<span class="badge featured">&#11088; Featured</span>':''}
+    </div>
+    <div class="dm-section"><h3>Salary</h3><p>${j.salary}</p></div>
+    <div class="dm-section"><h3>About the role</h3><p>${j.desc}</p></div>
+    ${j.tags.length?'<div class="dm-section"><h3>Skills & technologies</h3><ul>'+j.tags.map(t=>'<li>'+t+'</li>').join('')+'</ul></div>':''}
+    <div class="dm-section"><h3>Posted</h3><p>${j.date}</p></div>`;
+  document.getElementById('detail-apply-btn').onclick=()=>{applyJob(id);closeDetailModal()};
+  document.getElementById('detail-modal').classList.add('open');
+}
+function closeDetailModal(){document.getElementById('detail-modal').classList.remove('open')}
+
+function applyJob(id){
+  const j=jobs.find(x=>x.id===id);
+  if(j&&j.applyUrl){
+    if(j.applyUrl.startsWith('http'))window.open(j.applyUrl,'_blank');
+    else window.location.href='mailto:'+j.applyUrl+'?subject=Application for '+encodeURIComponent(j.title);
+  } else {
+    showToast('Application submitted! The team will be in touch.');
+  }
+}
+
+function openPostModal(){document.getElementById('post-modal').classList.add('open')}
+function closePostModal(){document.getElementById('post-modal').classList.remove('open')}
+
+function submitJob(){
+  const title=document.getElementById('pf-title').value.trim();
+  const company=document.getElementById('pf-company').value.trim();
+  const location=document.getElementById('pf-location').value.trim();
+  const desc=document.getElementById('pf-desc').value.trim();
+  if(!title||!company||!location||!desc){
+    alert('Please fill in all required fields (marked with *).');return;
+  }
+  const tagsRaw=document.getElementById('pf-tags').value.trim();
+  const tags=tagsRaw?tagsRaw.split(',').map(t=>t.trim()).filter(Boolean):[];
+  const newJob={
+    id:nextId++,title,company,location,
+    type:document.getElementById('pf-type').value,
+    exp:document.getElementById('pf-exp').value,
+    salary:document.getElementById('pf-salary').value.trim()||'Competitive',
+    salaryNum:0,desc,tags,date:'Just now',daysAgo:0,featured:false,
+    applyUrl:document.getElementById('pf-apply').value.trim()
+  };
+  jobs.unshift(newJob);
+  document.getElementById('total-jobs').textContent=jobs.length;
+  closePostModal();
+  filterJobs();
+  showToast('Job posted successfully!');
+  ['pf-title','pf-company','pf-location','pf-salary','pf-desc','pf-tags','pf-apply'].forEach(id=>document.getElementById(id).value='');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+filterJobs();
+</script>
+</body>
+</html>
