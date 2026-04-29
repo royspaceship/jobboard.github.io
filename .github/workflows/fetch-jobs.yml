@@ -2,12 +2,12 @@ name: Fetch Jobs Daily
 
 on:
   schedule:
-    - cron: '0 2 * * *'    # 2 AM UTC = 7:30 AM India
-    - cron: '0 5 * * *'    # 5 AM UTC = 10:30 AM India
-    - cron: '0 8 * * *'    # 8 AM UTC = 1:30 PM India
-    - cron: '0 11 * * *'   # 11 AM UTC = 4:30 PM India
-    - cron: '0 14 * * *'   # 2 PM UTC = 7:30 PM India
-    - cron: '0 17 * * *'   # 5 PM UTC = 10:30 PM India
+    - cron: '0 2 * * *'
+    - cron: '0 5 * * *'
+    - cron: '0 8 * * *'
+    - cron: '0 11 * * *'
+    - cron: '0 14 * * *'
+    - cron: '0 17 * * *'
   workflow_dispatch:
 
 env:
@@ -40,3 +40,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+
+      - name: Fetch hiring news
+        run: node fetch-news.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
