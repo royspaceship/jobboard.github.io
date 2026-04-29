@@ -2,9 +2,12 @@ name: Fetch Jobs Daily
 
 on:
   schedule:
-    - cron: '0 6 * * *'
-    - cron: '0 12 * * *'
-    - cron: '0 18 * * *'
+    - cron: '0 2 * * *'    # 2 AM UTC = 7:30 AM India
+    - cron: '0 5 * * *'    # 5 AM UTC = 10:30 AM India
+    - cron: '0 8 * * *'    # 8 AM UTC = 1:30 PM India
+    - cron: '0 11 * * *'   # 11 AM UTC = 4:30 PM India
+    - cron: '0 14 * * *'   # 2 PM UTC = 7:30 PM India
+    - cron: '0 17 * * *'   # 5 PM UTC = 10:30 PM India
   workflow_dispatch:
 
 env:
@@ -25,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm install @supabase/supabase-js
 
-      - name: Clean up old jobs
+      - name: Clean old jobs
         run: node cleanup-jobs.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
