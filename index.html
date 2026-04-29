@@ -666,13 +666,7 @@ var PAL = [
   {bg:'rgba(236,72,153,0.13)',c:'#f9a8d4'},{bg:'rgba(20,184,166,0.13)',c:'#5eead4'},
   {bg:'rgba(249,115,22,0.13)',c:'#fdba74'},{bg:'rgba(139,92,246,0.13)',c:'#c4b5fd'}
 ];
-var NEWS = [
-  'Google announces 2,000 new AI hires','Remote tech jobs surge to record high',
-  'Amazon AWS expands across Asia Pacific','Startup funding hits $12B this quarter',
-  'India top destination for tech hiring','Microsoft doubles AI research team',
-  'Meta hiring 800 engineers globally','Apple expanding Bangalore design hub',
-  'Tech salaries up 18% year over year','Netflix opens engineering center in Mumbai'
-];
+
 var savedJobs = new Set();
 var jobs = [];
 
@@ -817,17 +811,80 @@ function toast(msg){
   setTimeout(function(){t.classList.remove('show');},3000);
 }
 
-function refreshNews(){
-  var el=document.getElementById('news-items');
-  var sh=NEWS.slice().sort(function(){return Math.random()-.5;});
-  var times=['Just now','1 hour ago','3 hours ago','6 hours ago','12 hours ago'];
-  el.innerHTML=sh.slice(0,5).map(function(h,i){
-    return'<div class="ni"><div class="ni-t">'+h+'</div><div class="ni-m">'+times[i]+'</div></div>';
+function loadNews() {
+  fetch(SUPABASE_URL + '/rest/v1/news?select=*&order=published_at.desc&limit=8', {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data || !data.length) {
+      loadFallbackNews();
+      return;
+    }
+    renderNews(data);
+  })
+  .catch(function() {
+    loadFallbackNews();
+  });
+}
+
+function renderNews(articles) {
+  var el = document.getElementById('news-items');
+  if (!el) return;
+  el.innerHTML = articles.map(function(a) {
+    var time = timeAgoNews(a.published_at);
+    return '<div class="ni" onclick="window.open(\'' + a.url + '\',\'_blank\')" style="cursor:pointer">'
+      + '<div class="ni-t">' + a.title + '</div>'
+      + '<div class="ni-m" style="display:flex;align-items:center;gap:6px;">'
+      + '<span style="color:var(--sky);font-size:9px;">&#128279; ' + (a.source || 'News') + '</span>'
+      + '<span>&middot;</span>'
+      + '<span>' + time + '</span>'
+      + '</div>'
+      + '</div>';
   }).join('');
 }
-setInterval(refreshNews,60000);
+
+function loadFallbackNews() {
+  var fallback = [
+    { title: 'Google hiring 2,000 engineers in AI division', url: 'https://news.google.com/search?q=google+hiring', source: 'Google News', published_at: new Date().toISOString() },
+    { title: 'Remote tech jobs surge to record high', url: 'https://news.google.com/search?q=remote+jobs+tech', source: 'Google News', published_at: new Date().toISOString() },
+    { title: 'Amazon AWS expands team across Asia Pacific', url: 'https://news.google.com/search?q=amazon+hiring', source: 'Google News', published_at: new Date().toISOString() },
+    { title: 'India top destination for global tech hiring', url: 'https://news.google.com/search?q=india+tech+hiring', source: 'Google News', published_at: new Date().toISOString() },
+    { title: 'Microsoft doubles AI research team size', url: 'https://news.google.com/search?q=microsoft+hiring', source: 'Google News', published_at: new Date().toISOString() }
+  ];
+  renderNews(fallback);
+}
+
+function timeAgoNews(dateStr) {
+  var diff = Date.now() - new Date(dateStr);
+  var mins = Math.floor(diff / 60000);
+  var hrs = Math.floor(diff / 3600000);
+  var days = Math.floor(diff / 86400000);
+  if (mins < 60) return mins + ' min ago';
+  if (hrs < 24) return hrs + ' hour' + (hrs > 1 ? 's' : '') + ' ago';
+  return days + ' day' + (days > 1 ? 's' : '') + ' ago';
+}
+
+// Also update the ticker with real news links
+function updateTicker(articles) {
+  var ticker = document.getElementById('ticker');
+  if (!ticker || !articles || !articles.length) return;
+  var items = articles.map(function(a) {
+    return '<span class="ti" onclick="window.open(\'' + a.url + '\',\'_blank\')" style="cursor:pointer">'
+      + a.title
+      + '<span class="ti-dot"></span></span>';
+  }).join('');
+  ticker.innerHTML = items + items; // duplicate for infinite scroll
+}
+
+// Refresh news every 30 minutes
+setInterval(loadNews, 30 * 60 * 1000);
 
 loadJobs();
+loadNews();
 </script>
 </body>
 </html>
